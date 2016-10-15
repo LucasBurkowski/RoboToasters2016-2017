@@ -17,6 +17,7 @@ public class TeleOpTest extends OpMode{
     DcMotor motorRight2;
     protected float leftY;
     protected float rightY;
+    protected float pSquared;
 
 
     @Override
@@ -41,10 +42,22 @@ public class TeleOpTest extends OpMode{
     public void loop() {
         leftY = gamepad1.left_stick_y;
         rightY = gamepad1.right_stick_y;
+        if(leftY >0){
+            pSquared = (leftY*leftY);
+        }else
+        {
+            pSquared = -1*(leftY*leftY);
+        }
 
-        motorLeft1.setPower(leftY);
-        motorLeft2.setPower(leftY);
-        motorRight1.setPower(rightY);
-        motorRight2.setPower(rightY);
+        motorLeft1.setPower(pSquared);
+        motorLeft2.setPower(pSquared);
+        if(rightY>0){
+            pSquared = (rightY*rightY);
+        }else{
+            pSquared = -1*(rightY*rightY);
+        }
+
+        motorRight1.setPower(pSquared);
+        motorRight2.setPower(pSquared);
     }
 }

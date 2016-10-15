@@ -2,9 +2,8 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
+
 
 /**
  * Created by jacost63 on 9/27/2016.
@@ -13,10 +12,9 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 public class AutonomousTestFire extends OpMode {
     private static final int ENCODER_PULSES_PER_REV = 280;
 
-    private static final int ZERO_POWER = 0;
-    private static final int MAX_FORWARD = 1;
-    private static final int MAX_REVERSE = -1;
-
+    private static final double ZERO_POWER = 0;
+    private static final double MAX_FORWARD = 0.25;
+    private static final double MAX_REVERSE = -0.25;
     private DcMotor motorLeft1 = null;
     private DcMotor motorLeft2 = null;
     private DcMotor motorRight1 = null;
@@ -28,7 +26,7 @@ public class AutonomousTestFire extends OpMode {
         this.motorLeft2 = this.hardwareMap.dcMotor.get("motorLeft2");
         this.motorRight1 = this.hardwareMap.dcMotor.get("motorRight1");
         this.motorRight2 = this.hardwareMap.dcMotor.get("motorRight2");
-        DcMotor.RunMode mode = DcMotor.RunMode.RUN_USING_ENCODER;
+        DcMotor.RunMode mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER;//RUN_USING_ENCODER;
         this.motorLeft1.setMode(mode);
         this.motorLeft2.setMode(mode);
         this.motorRight1.setMode(mode);
@@ -44,17 +42,18 @@ public class AutonomousTestFire extends OpMode {
 
     @Override
     public void loop(){
-        for(int i=0;i<4;i++){
+        for(int i=0;i<10;i++) {
             AllStop();
             MaxForward();
             try {
-                Thread.sleep(5000);
+                Thread.sleep(3000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            HardRight();
+            AllStop();
+            HardRight();//HardRight();
             try {
-                Thread.sleep(500);
+                Thread.sleep(1250);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
