@@ -72,7 +72,7 @@ public class ETest2 extends LinearOpMode {
 
     int inchesToTicks(double distance){
         return((int) Math.ceil(
-                (distance * 70) / PI
+                distance*2880/32
         ));
     }
 
@@ -124,7 +124,7 @@ public class ETest2 extends LinearOpMode {
         // leftMotor.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
         // rightMotor.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
 
-        distToTravel = 280;//inchesToTicks(12);
+        distToTravel = 5400;//inchesToTicks(12);
         telemetry.addData("Set",  " at %7d", distToTravel);
         motorLeft1.setTargetPosition(distToTravel);
         motorLeft2.setTargetPosition(distToTravel);
@@ -141,14 +141,14 @@ public class ETest2 extends LinearOpMode {
         motorRight1.setMode(mode);
         motorRight2.setMode(mode);
         runtime.reset();
-        motorLeft1.setPower(.10);
-        motorLeft2.setPower(.10);
-        motorRight1.setPower(.10);
-        motorRight2.setPower(.10);
+        motorLeft1.setPower(1);
+        motorLeft2.setPower(1);
+        motorRight1.setPower(1);
+        motorRight2.setPower(1);
         state = 0;
         // run until the end of the match (driver presses STOP)
         //while (opModeIsActive() && (runtime.seconds() < 3 ) && (motorLeft1.isBusy() && motorRight1.isBusy() && motorLeft2.isBusy() && motorRight2.isBusy()) ) {
-        while (opModeIsActive() && (runtime.seconds() < 3) &&
+        while (opModeIsActive()  &&
                 (motorLeft1.isBusy() && motorLeft2.isBusy() && motorRight1.isBusy() && motorRight2.isBusy())
                 ) {
             //telemetry.addData("Status", "Run Time: %7d", state);//runtime.toString());
