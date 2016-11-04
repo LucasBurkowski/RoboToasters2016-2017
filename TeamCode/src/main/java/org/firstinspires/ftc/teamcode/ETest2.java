@@ -36,6 +36,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
@@ -75,6 +76,10 @@ public class ETest2 extends LinearOpMode {
                 distance*2880/32
         ));
     }
+    int degreesToTicks(double degrees){
+        return((int) Math.ceil(degrees* 1
+        ));
+    }
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -85,10 +90,10 @@ public class ETest2 extends LinearOpMode {
         motorRight1 = hardwareMap.dcMotor.get("motorRight1");
         motorRight2 = hardwareMap.dcMotor.get("motorRight2");
 
-        motorLeft1.setDirection(DcMotor.Direction.FORWARD);
-        motorLeft2.setDirection(DcMotor.Direction.FORWARD);
-        motorRight1.setDirection(DcMotor.Direction.REVERSE);
-        motorRight2.setDirection(DcMotor.Direction.REVERSE);
+        motorLeft1.setDirection(DcMotor.Direction.REVERSE);
+        motorLeft2.setDirection(DcMotor.Direction.REVERSE);
+        motorRight1.setDirection(DcMotor.Direction.FORWARD);
+        motorRight2.setDirection(DcMotor.Direction.FORWARD);
 
         motorLeft1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motorLeft2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -105,7 +110,6 @@ public class ETest2 extends LinearOpMode {
         telemetry.addData("leftMotor",  "Starting at %7d :%7d",
                 motorLeft1.getCurrentPosition(),
                 motorLeft2.getCurrentPosition());
-        telemetry.update();
         telemetry.addData("leftMotor",  "Starting at %7d :%7d",
                 motorRight1.getCurrentPosition(),
                 motorRight2.getCurrentPosition());
@@ -124,12 +128,12 @@ public class ETest2 extends LinearOpMode {
         // leftMotor.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
         // rightMotor.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
 
-        distToTravel = 5400;//inchesToTicks(12);
+        distToTravel = inchesToTicks(3); //3 inches is just over 90/4 degrees
         telemetry.addData("Set",  " at %7d", distToTravel);
         motorLeft1.setTargetPosition(distToTravel);
         motorLeft2.setTargetPosition(distToTravel);
-        motorRight1.setTargetPosition(distToTravel);
-        motorRight2.setTargetPosition(distToTravel);
+        motorRight1.setTargetPosition(-1*distToTravel);
+        motorRight2.setTargetPosition(-1*distToTravel);
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
@@ -145,7 +149,7 @@ public class ETest2 extends LinearOpMode {
         motorLeft2.setPower(1);
         motorRight1.setPower(1);
         motorRight2.setPower(1);
-        state = 0;
+        //state = 0;
         // run until the end of the match (driver presses STOP)
         //while (opModeIsActive() && (runtime.seconds() < 3 ) && (motorLeft1.isBusy() && motorRight1.isBusy() && motorLeft2.isBusy() && motorRight2.isBusy()) ) {
         while (opModeIsActive()  &&
@@ -153,10 +157,9 @@ public class ETest2 extends LinearOpMode {
                 ) {
             //telemetry.addData("Status", "Run Time: %7d", state);//runtime.toString());
             // Send telemetry message to indicate successful Encoder reset
-            telemetry.addData("l / R",  " at %7d :%7d",
+            telemetry.addData("leftM0tor",  " at %7d :%7d",
                     motorLeft1.getCurrentPosition(),
                     motorLeft2.getCurrentPosition());
-            telemetry.update();
             telemetry.addData("rightMotor",  " at %7d :%7d",
                     motorRight1.getCurrentPosition(),
                     motorRight2.getCurrentPosition());
@@ -165,7 +168,6 @@ public class ETest2 extends LinearOpMode {
             // eg: Run wheels in tank mode (note: The joystick goes negative when pushed forwards)
             // leftMotor.setPower(-gamepad1.left_stick_y);
             // rightMotor.setPower(-gamepad1.right_stick_y);
-            state++;
             idle(); // Always call idle() at the bottom of your while(opModeIsActive()) loop
         }
         motorLeft1.setPower(0);

@@ -43,7 +43,10 @@ public class VuforiaTest extends LinearOpMode {
         waitForStart();
         
         beacons.activate();
-
+        //0
+        //1  is height
+        //2   is distance
+        //bottom is degrees going negative
 
         while(opModeIsActive()){
             for(VuforiaTrackable beac : beacons){
