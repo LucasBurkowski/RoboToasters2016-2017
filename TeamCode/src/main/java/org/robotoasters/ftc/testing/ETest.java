@@ -30,14 +30,24 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.firstinspires.ftc.teamcode;
+package org.robotoasters.ftc.testing;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import android.app.Activity;
+import android.content.Context;
+import android.graphics.Color;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
+import android.view.View;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
+import com.qualcomm.robotcore.hardware.DigitalChannelController;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.teamcode.R;
 
 /**
  * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
@@ -52,12 +62,12 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="ETest2", group="Linear Opmode")  // @Autonomous(...) is the other common choice
-public class ETest2 extends LinearOpMode {
-
+@TeleOp(name="ETest", group="Linear Opmode")  // @Autonomous(...) is the other common choice
+public class ETest extends OpMode {
+   SensorManager mSensorManager;
     /* Declare OpMode members. */
     private ElapsedTime runtime = new ElapsedTime();
-    private static final int ENCODER_PULSES_PER_REV = 280;
+    private static final int ENCODER_PULSES_PER_REV = 2880;
     private static final double PI = 3.1415;
 
     DcMotor motorLeft1;
@@ -67,13 +77,32 @@ public class ETest2 extends LinearOpMode {
     protected float leftY;
     protected float rightY;
     protected float pSquared;
-
+    int target = inchesToTicks(48);
     protected int distToTravel;
-    int state;
+
+    //color stuff
+    ColorSensor sensorRGB;
+
+    //Phone Sensor
+    Sensor gyroMag;
+    float currentAngle = 0;
+
+    static final int LED_CHANNEL = 5;
+    private float hsvValues[] = {0F,0F,0F};
+    final float values[]  = hsvValues;
+    final View relativeLayout = ((Activity) hardwareMap.appContext).findViewById(R.id.RelativeLayout);
+
+    boolean bPrevState = false;
+    boolean bCurrState = false;
+    boolean bLedOn = true;
+
+    DeviceInterfaceModule cdim = hardwareMap.deviceInterfaceModule.get("dim");
+
+
 
     int inchesToTicks(double distance){
         return((int) Math.ceil(
-                distance*2880/32
+                distance*ENCODER_PULSES_PER_REV/32
         ));
     }
     int degreesToTicks(double degrees){
@@ -82,7 +111,19 @@ public class ETest2 extends LinearOpMode {
     }
 
     @Override
-    public void runOpMode() throws InterruptedException {
+    public void init() {
+        mSensorManager = (SensorManager) hardwareMap.appContext.getSystemService(Context.SENSOR_SERVICE);
+        gyroMag = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+
+        //RGB init
+        cdim.setDigitalChannelMode(LED_CHANNEL, DigitalChannelController.Mode.OUTPUT);
+
+        sensorRGB = hardwareMap.colorSensor.get("color");
+        cdim.setDigitalChannelState(LED_CHANNEL,bLedOn);
+
+
+
+
         telemetry.addData("Status", "Initialized");
         telemetry.update();
         motorLeft1 = hardwareMap.dcMotor.get("motorLeft1");
@@ -90,16 +131,16 @@ public class ETest2 extends LinearOpMode {
         motorRight1 = hardwareMap.dcMotor.get("motorRight1");
         motorRight2 = hardwareMap.dcMotor.get("motorRight2");
 
-        motorLeft1.setDirection(DcMotor.Direction.REVERSE);
-        motorLeft2.setDirection(DcMotor.Direction.REVERSE);
-        motorRight1.setDirection(DcMotor.Direction.FORWARD);
-        motorRight2.setDirection(DcMotor.Direction.FORWARD);
+        motorLeft1.setDirection(DcMotor.Direction.FORWARD);
+        motorLeft2.setDirection(DcMotor.Direction.FORWARD);
+        motorRight1.setDirection(DcMotor.Direction.REVERSE);
+        motorRight2.setDirection(DcMotor.Direction.REVERSE);
 
         motorLeft1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motorLeft2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motorRight1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motorRight2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        idle();
+
 
         DcMotor.RunMode mode = DcMotor.RunMode.RUN_USING_ENCODER;
         motorLeft1.setMode(mode);
@@ -107,10 +148,10 @@ public class ETest2 extends LinearOpMode {
         motorRight1.setMode(mode);
         motorRight2.setMode(mode);
         // Send telemetry message to indicate successful Encoder reset
-        telemetry.addData("leftMotor",  "Starting at %7d :%7d",
+        telemetry.addData("leftMotor", "Starting at %7d :%7d",
                 motorLeft1.getCurrentPosition(),
                 motorLeft2.getCurrentPosition());
-        telemetry.addData("leftMotor",  "Starting at %7d :%7d",
+        telemetry.addData("leftMotor", "Starting at %7d :%7d",
                 motorRight1.getCurrentPosition(),
                 motorRight2.getCurrentPosition());
         telemetry.update();
@@ -129,14 +170,13 @@ public class ETest2 extends LinearOpMode {
         // rightMotor.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
 
         distToTravel = inchesToTicks(3); //3 inches is just over 90/4 degrees
-        telemetry.addData("Set",  " at %7d", distToTravel);
+        telemetry.addData("Set", " at %7d", distToTravel);
         motorLeft1.setTargetPosition(distToTravel);
         motorLeft2.setTargetPosition(distToTravel);
-        motorRight1.setTargetPosition(-1*distToTravel);
-        motorRight2.setTargetPosition(-1*distToTravel);
+        motorRight1.setTargetPosition(-1 * distToTravel);
+        motorRight2.setTargetPosition(-1 * distToTravel);
 
-        // Wait for the game to start (driver presses PLAY)
-        waitForStart();
+
         runtime.reset();
 
         mode = DcMotor.RunMode.RUN_TO_POSITION;
@@ -144,19 +184,21 @@ public class ETest2 extends LinearOpMode {
         motorLeft2.setMode(mode);
         motorRight1.setMode(mode);
         motorRight2.setMode(mode);
+        motorLeft1.setTargetPosition(inchesToTicks(48));
+        motorLeft2.setTargetPosition(inchesToTicks(48));
+        motorRight1.setTargetPosition(inchesToTicks(48));
+        motorRight2.setTargetPosition(inchesToTicks(48));
         runtime.reset();
-        motorLeft1.setPower(1);
-        motorLeft2.setPower(1);
-        motorRight1.setPower(1);
-        motorRight2.setPower(1);
+
+    }
         //state = 0;
         // run until the end of the match (driver presses STOP)
-        //while (opModeIsActive() && (runtime.seconds() < 3 ) && (motorLeft1.isBusy() && motorRight1.isBusy() && motorLeft2.isBusy() && motorRight2.isBusy()) ) {
-        while (opModeIsActive()  &&
-                (motorLeft1.isBusy() && motorLeft2.isBusy() && motorRight1.isBusy() && motorRight2.isBusy())
-                ) {
+        @Override
+        public void loop() {
+        //while (opModeIsActive() && motorLeft1.isBusy() && motorLeft2.isBusy() && motorRight1.isBusy() && motorRight2.isBusy()){
             //telemetry.addData("Status", "Run Time: %7d", state);//runtime.toString());
             // Send telemetry message to indicate successful Encoder reset
+            /*
             telemetry.addData("leftM0tor",  " at %7d :%7d",
                     motorLeft1.getCurrentPosition(),
                     motorLeft2.getCurrentPosition());
@@ -164,20 +206,36 @@ public class ETest2 extends LinearOpMode {
                     motorRight1.getCurrentPosition(),
                     motorRight2.getCurrentPosition());
             telemetry.update();
+            */
+            currentAngle = SensorManager.AXIS_Y;
 
-            // eg: Run wheels in tank mode (note: The joystick goes negative when pushed forwards)
+            pControl(.0001, -target, motorRight1.getCurrentPosition(), motorRight1);
+            pControl(.0001, -target, motorRight2.getCurrentPosition(), motorRight2);
+            pControl(.0001, -target, motorLeft1.getCurrentPosition(), motorLeft1);
+            pControl(.0001, -target, motorLeft2.getCurrentPosition(), motorLeft2);
+                // eg: Run wheels in tank mode (note: The joystick goes negative when pushed forwards)
             // leftMotor.setPower(-gamepad1.left_stick_y);
             // rightMotor.setPower(-gamepad1.right_stick_y);
-            idle(); // Always call idle() at the bottom of your while(opModeIsActive()) loop
+
+            telemetry.addData("LED", bLedOn ? "On" : "Off");
+            telemetry.addData("Clear", sensorRGB.alpha());
+            telemetry.addData("Red  ", sensorRGB.red());
+            telemetry.addData("Green", sensorRGB.green());
+            telemetry.addData("Blue ", sensorRGB.blue());
+            telemetry.addData("Hue", hsvValues[0]);
+            telemetry.update();
+
+            relativeLayout.post(new Runnable() {
+                public void run() {
+                    relativeLayout.setBackgroundColor(Color.HSVToColor(0xff, values));
+                }
+            });
         }
-        motorLeft1.setPower(0);
-        motorLeft2.setPower(0);
-        motorRight1.setPower(0);
-        motorRight2.setPower(0);
-        mode = DcMotor.RunMode.RUN_USING_ENCODER;
-        motorLeft1.setMode(mode);
-        motorLeft2.setMode(mode);
-        motorRight1.setMode(mode);
-        motorRight2.setMode(mode);
+
+        private void pControl(double P, double setPoint, double currentPosition, DcMotor motor){
+            double error =  setPoint - currentPosition;
+            motor.setPower(P * error);
+            telemetry.addData("Pout", " at %7d :%7d", (P * error));
+        }
     }
-}
+
