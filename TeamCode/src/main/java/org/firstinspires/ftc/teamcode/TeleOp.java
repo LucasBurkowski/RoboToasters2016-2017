@@ -1,7 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
+import com.qualcomm.robotcore.hardware.DigitalChannelController;
+import com.qualcomm.robotcore.hardware.Servo;
 
 
 /**
@@ -15,16 +19,19 @@ public class TeleOp extends OpMode{
     DcMotor motorLeft2;
     DcMotor motorRight1;
     DcMotor motorRight2;
-    /*
+
     Servo beaconright;
     Servo beaconleft;
-    */
 
     DcMotor Lift1;
     DcMotor Lift2;
 
     DcMotor LClaw;
     DcMotor RClaw;
+
+    static final int LED_CHANNEL = 5;
+    private float hsvValues[] = {0F,0F,0F};
+    final float values[]  = hsvValues;
 
     protected float leftY;
     protected float rightY;
@@ -33,6 +40,9 @@ public class TeleOp extends OpMode{
     protected double curLiftPwr;
     protected boolean liftPwrChange = false;
 
+    DeviceInterfaceModule cdim;
+    ColorSensor sensorRGB;
+
     @Override
     public void init() {
         //init motors
@@ -40,10 +50,10 @@ public class TeleOp extends OpMode{
         motorLeft2 = hardwareMap.dcMotor.get("motorLeft2");
         motorRight1 = hardwareMap.dcMotor.get("motorRight1");
         motorRight2 = hardwareMap.dcMotor.get("motorRight2");
-        /*
+
         beaconleft = hardwareMap.servo.get("Srv1");
         beaconright = hardwareMap.servo.get("Srv2");
-        */
+
 
         DcMotor.RunMode mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER;
 
@@ -52,6 +62,10 @@ public class TeleOp extends OpMode{
         motorRight1.setMode(mode);
         motorRight2.setMode(mode);
 
+        cdim = hardwareMap.deviceInterfaceModule.get("dim");
+        cdim.setDigitalChannelMode(LED_CHANNEL, DigitalChannelController.Mode.OUTPUT);
+
+        sensorRGB = hardwareMap.colorSensor.get("color");
 
         mode = DcMotor.RunMode.RUN_USING_ENCODER;
 
@@ -79,7 +93,7 @@ public class TeleOp extends OpMode{
         Lift2.setMode(mode);
         Lift1.setDirection(DcMotor.Direction.FORWARD);
         Lift2.setDirection(DcMotor.Direction.REVERSE);
-        curLiftPwr = .5;
+        curLiftPwr = .75;
 
         //init Claws
         RClaw = hardwareMap.dcMotor.get("RClaw");
@@ -161,22 +175,37 @@ public class TeleOp extends OpMode{
 
         }
 
-        /*
-        if (gamepad2.a){
-            beaconleft.setPosition(.5);
-        }else{
+
+        if (gamepad2.a) {
             beaconleft.setPosition(0);
+            beaconright.setPosition(1);
+        }
+        else if (gamepad2.y){
+            beaconleft.setPosition(.5);
+            beaconright.setPosition(.5);
         }
 
-        if (gamepad2.b){
-            beaconleft.setPosition(.5);
-        }else{
+        if (gamepad2.x && sensorRGB.blue() > 1000){
             beaconleft.setPosition(0);
+            beaconright.setPosition(0.5);
         }
-        */
+        else if (gamepad2.x && sensorRGB.red() > 1000){
+            beaconleft.setPosition(0.5);
+            beaconright.setPosition(1);
+        }
 
-
-
+        if(gamepad2.b && sensorRGB.red() > 1000){
+            beaconleft.setPosition(0);
+            beaconright.setPosition(0.5);
+        }
+        else if (gamepad2.b && sensorRGB.red() > 1000){
+            beaconleft.setPosition(0.5);
+            beaconright.setPosition(1);
+        }
+        else{
+            beaconleft.setPosition(0.5);
+            beaconright.setPosition(0.5);
+        }
         //Debug
         /*
         telemetry.addData("LeftY",  " at %7d",

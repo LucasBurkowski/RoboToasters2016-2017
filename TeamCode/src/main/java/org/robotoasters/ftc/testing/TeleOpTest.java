@@ -1,15 +1,15 @@
 package org.robotoasters.ftc.testing;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 /**
  * Created by jacost63 on 9/27/2016.
  */
 @TeleOp(name="TeleOp Test", group="Linear Opmode")
-
+@Disabled
 public class TeleOpTest extends OpMode{
 
     DcMotor motorLeft1;

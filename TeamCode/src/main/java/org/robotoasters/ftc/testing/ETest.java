@@ -32,22 +32,12 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.robotoasters.ftc.testing;
 
-import android.app.Activity;
-import android.content.Context;
-import android.graphics.Color;
-import android.hardware.Sensor;
 import android.hardware.SensorManager;
-import android.view.View;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
-import com.qualcomm.robotcore.hardware.DigitalChannelController;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.firstinspires.ftc.teamcode.R;
 
 /**
  * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
@@ -61,8 +51,8 @@ import org.firstinspires.ftc.teamcode.R;
  * Use Android Studios to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
+@Autonomous(name="ETest", group="Linear Opmode")  // @Autonomous(...) is the other common choice
 
-@TeleOp(name="ETest", group="Linear Opmode")  // @Autonomous(...) is the other common choice
 public class ETest extends OpMode {
    SensorManager mSensorManager;
     /* Declare OpMode members. */
@@ -81,12 +71,13 @@ public class ETest extends OpMode {
     protected int distToTravel;
 
     //color stuff
-    ColorSensor sensorRGB;
+    //ColorSensor sensorRGB;
 
     //Phone Sensor
-    Sensor gyroMag;
+    //Sensor gyroMag;
     float currentAngle = 0;
 
+    /*
     static final int LED_CHANNEL = 5;
     private float hsvValues[] = {0F,0F,0F};
     final float values[]  = hsvValues;
@@ -98,7 +89,7 @@ public class ETest extends OpMode {
 
     DeviceInterfaceModule cdim = hardwareMap.deviceInterfaceModule.get("dim");
 
-
+    */
 
     int inchesToTicks(double distance){
         return((int) Math.ceil(
@@ -112,14 +103,14 @@ public class ETest extends OpMode {
 
     @Override
     public void init() {
-        mSensorManager = (SensorManager) hardwareMap.appContext.getSystemService(Context.SENSOR_SERVICE);
-        gyroMag = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+        //mSensorManager = (SensorManager) hardwareMap.appContext.getSystemService(Context.SENSOR_SERVICE);
+        //gyroMag = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
 
         //RGB init
-        cdim.setDigitalChannelMode(LED_CHANNEL, DigitalChannelController.Mode.OUTPUT);
+        //cdim.setDigitalChannelMode(LED_CHANNEL, DigitalChannelController.Mode.OUTPUT);
 
-        sensorRGB = hardwareMap.colorSensor.get("color");
-        cdim.setDigitalChannelState(LED_CHANNEL,bLedOn);
+        //sensorRGB = hardwareMap.colorSensor.get("color");
+        //cdim.setDigitalChannelState(LED_CHANNEL,bLedOn);
 
 
 
@@ -147,15 +138,6 @@ public class ETest extends OpMode {
         motorLeft2.setMode(mode);
         motorRight1.setMode(mode);
         motorRight2.setMode(mode);
-        // Send telemetry message to indicate successful Encoder reset
-        telemetry.addData("leftMotor", "Starting at %7d :%7d",
-                motorLeft1.getCurrentPosition(),
-                motorLeft2.getCurrentPosition());
-        telemetry.addData("leftMotor", "Starting at %7d :%7d",
-                motorRight1.getCurrentPosition(),
-                motorRight2.getCurrentPosition());
-        telemetry.update();
-
 
         /* eg: Initialize the hardware variables. Note that the strings used here as parameters
          * to 'get' must correspond to the names assigned during the robot configuration
@@ -216,7 +198,7 @@ public class ETest extends OpMode {
                 // eg: Run wheels in tank mode (note: The joystick goes negative when pushed forwards)
             // leftMotor.setPower(-gamepad1.left_stick_y);
             // rightMotor.setPower(-gamepad1.right_stick_y);
-
+            /*
             telemetry.addData("LED", bLedOn ? "On" : "Off");
             telemetry.addData("Clear", sensorRGB.alpha());
             telemetry.addData("Red  ", sensorRGB.red());
@@ -230,6 +212,7 @@ public class ETest extends OpMode {
                     relativeLayout.setBackgroundColor(Color.HSVToColor(0xff, values));
                 }
             });
+            */
         }
 
         private void pControl(double P, double setPoint, double currentPosition, DcMotor motor){

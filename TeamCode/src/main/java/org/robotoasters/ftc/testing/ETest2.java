@@ -32,11 +32,10 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.robotoasters.ftc.testing;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
@@ -52,7 +51,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="ETest2", group="Linear Opmode")  // @Autonomous(...) is the other common choice
+@Autonomous(name="ETest2", group="Linear Opmode")  // @Autonomous(...) is the other common choice
+@Disabled
 public class ETest2 extends LinearOpMode {
 
     /* Declare OpMode members. */
@@ -106,14 +106,6 @@ public class ETest2 extends LinearOpMode {
         motorLeft2.setMode(mode);
         motorRight1.setMode(mode);
         motorRight2.setMode(mode);
-        // Send telemetry message to indicate successful Encoder reset
-        telemetry.addData("leftMotor",  "Starting at %7d :%7d",
-                motorLeft1.getCurrentPosition(),
-                motorLeft2.getCurrentPosition());
-        telemetry.addData("leftMotor",  "Starting at %7d :%7d",
-                motorRight1.getCurrentPosition(),
-                motorRight2.getCurrentPosition());
-        telemetry.update();
 
 
         /* eg: Initialize the hardware variables. Note that the strings used here as parameters
@@ -129,7 +121,7 @@ public class ETest2 extends LinearOpMode {
         // rightMotor.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
 
         distToTravel = inchesToTicks(3); //3 inches is just over 90/4 degrees
-        telemetry.addData("Set",  " at %7d", distToTravel);
+        //telemetry.addData("Set",  " at %7d", distToTravel);
         motorLeft1.setTargetPosition(distToTravel);
         motorLeft2.setTargetPosition(distToTravel);
         motorRight1.setTargetPosition(-1*distToTravel);
@@ -157,6 +149,7 @@ public class ETest2 extends LinearOpMode {
                 ) {
             //telemetry.addData("Status", "Run Time: %7d", state);//runtime.toString());
             // Send telemetry message to indicate successful Encoder reset
+            /*
             telemetry.addData("leftM0tor",  " at %7d :%7d",
                     motorLeft1.getCurrentPosition(),
                     motorLeft2.getCurrentPosition());
@@ -164,7 +157,7 @@ public class ETest2 extends LinearOpMode {
                     motorRight1.getCurrentPosition(),
                     motorRight2.getCurrentPosition());
             telemetry.update();
-
+            */
             // eg: Run wheels in tank mode (note: The joystick goes negative when pushed forwards)
             // leftMotor.setPower(-gamepad1.left_stick_y);
             // rightMotor.setPower(-gamepad1.right_stick_y);

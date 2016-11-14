@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
  * Created by jacost63 on 9/27/2016.
  */
 @Autonomous(name="AutonomousTestFire", group="Iterative Opmode")  // @Autonomous(...) is the other common choice
+
 public class AutonomousTestFire extends OpMode {
     private static final int ENCODER_PULSES_PER_REV = 280;
 

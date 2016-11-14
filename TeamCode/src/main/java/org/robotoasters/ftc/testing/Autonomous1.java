@@ -1,5 +1,6 @@
 package org.robotoasters.ftc.testing;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.vuforia.HINT;
@@ -19,6 +20,7 @@ import org.firstinspires.ftc.teamcode.R;
  * Created by team 8487/11735 on 9/28/2016.
  */
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="Autonomous1", group="Linear Opmode")
+@Disabled
 public class Autonomous1 extends OpMode {
 
     DcMotor motorLeft1;

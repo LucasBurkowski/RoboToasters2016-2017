@@ -1,5 +1,6 @@
 package org.robotoasters.ftc.testing;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.vuforia.HINT;
@@ -19,6 +20,7 @@ import org.firstinspires.ftc.teamcode.R;
  * Created by jacost63 on 9/28/2016.
  */
 @TeleOp(name="VuforiaTest", group="Linear Opmode")
+@Disabled
 public class VuforiaTest extends LinearOpMode {
 
 
