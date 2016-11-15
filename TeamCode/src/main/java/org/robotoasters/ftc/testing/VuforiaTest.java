@@ -164,11 +164,19 @@ public class VuforiaTest extends LinearOpMode {
                             setTurn(turnAngle);
                         }else{
                             //turnAngle = 0; should be ready to drive forward.
+                            movingToPosition[0] = FALSE;
                         }
 
                     }
                     else if(targetAcquired[1] == TRUE && movingToPosition[1] ==FALSE){
-
+                        double turnAngle = getTurnAngle(degreesToTurn);
+                        if(turnAngle != 0){
+                            movingToPosition[1] = TRUE;
+                            setTurn(turnAngle);
+                        }else{
+                            //turnAngle = 0; should be ready to drive forward.
+                            movingToPosition[1] = FALSE;
+                        }
                     }
                     else{
                         //if we found a new valid beacon
