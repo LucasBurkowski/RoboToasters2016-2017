@@ -151,6 +151,7 @@ public class VuforiaTest extends LinearOpMode {
             for(VuforiaTrackable beac : beacons){
                 OpenGLMatrix pose = ((VuforiaTrackableDefaultListener) beac.getListener()).getPose();
                 if(pose!=null) {
+                    beacons.indexOf(beac); // is this a thing?
                     VectorF translation = pose.getTranslation();
                     telemetry.addData(beac.getName() + "Translation", translation);
                     double degreesToTurn = 180-Math.toDegrees(Math.atan2(translation.get(1), translation.get(2)));
