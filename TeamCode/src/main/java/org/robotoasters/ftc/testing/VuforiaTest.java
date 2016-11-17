@@ -25,7 +25,7 @@ import static java.lang.Boolean.TRUE;
  * Built for Red Side
  */
 @TeleOp(name="VuforiaTestRed", group="Linear Opmode")
-
+@Disabled
 public class VuforiaTest extends LinearOpMode {
 
     private static final int ENCODER_PULSES_PER_REV = 2880;
