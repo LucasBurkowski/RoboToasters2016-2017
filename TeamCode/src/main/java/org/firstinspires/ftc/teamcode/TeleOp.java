@@ -5,7 +5,8 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
 import com.qualcomm.robotcore.hardware.DigitalChannelController;
-import com.qualcomm.robotcore.hardware.Servo;
+
+import org.robotoasters.ftc.helper.BeaconHandler;
 
 
 /**
@@ -15,13 +16,11 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 public class TeleOp extends OpMode{
 
+    BeaconHandler beaconPush;
     DcMotor motorLeft1;
     DcMotor motorLeft2;
     DcMotor motorRight1;
     DcMotor motorRight2;
-
-    Servo beaconright;
-    Servo beaconleft;
 
     DcMotor Lift1;
     DcMotor Lift2;
@@ -50,10 +49,6 @@ public class TeleOp extends OpMode{
         motorLeft2 = hardwareMap.dcMotor.get("motorLeft2");
         motorRight1 = hardwareMap.dcMotor.get("motorRight1");
         motorRight2 = hardwareMap.dcMotor.get("motorRight2");
-
-        beaconleft = hardwareMap.servo.get("Srv1");
-        beaconright = hardwareMap.servo.get("Srv2");
-
 
         DcMotor.RunMode mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER;
 
@@ -108,6 +103,7 @@ public class TeleOp extends OpMode{
         RClaw.setDirection(DcMotor.Direction.REVERSE);
         LClaw.setDirection(DcMotor.Direction.FORWARD);
 
+        beaconPush = new BeaconHandler(hardwareMap);
     }
 
     @Override
@@ -143,6 +139,7 @@ public class TeleOp extends OpMode{
             Lift1.setPower(0);
             Lift2.setPower(0);
         }
+
         //liftPower
         if(gamepad2.dpad_right && (curLiftPwr < 1) && !liftPwrChange){
             liftPwrChange = true;
@@ -174,39 +171,15 @@ public class TeleOp extends OpMode{
             LClaw.setPower(0);
 
         }
-
-
-        if (gamepad2.a) {
-            beaconleft.setPosition(0);
-            beaconright.setPosition(1);
+        // Pressing Beacons
+        if (gamepad2.b){
+            beaconPush.pressBeacon(beaconPush.RED);
         }
-        else if (gamepad2.y){
-            beaconleft.setPosition(.5);
-            beaconright.setPosition(.5);
+        else if (gamepad2.x){
+            beaconPush.pressBeacon(beaconPush.BLUE);
         }
 
-        if (gamepad2.x && sensorRGB.blue() > 1000){
-            beaconleft.setPosition(0);
-            beaconright.setPosition(0.5);
-        }
-        else if (gamepad2.x && sensorRGB.red() > 1000){
-            beaconleft.setPosition(0.5);
-            beaconright.setPosition(1);
-        }
-
-        if(gamepad2.b && sensorRGB.red() > 1000){
-            beaconleft.setPosition(0);
-            beaconright.setPosition(0.5);
-        }
-        else if (gamepad2.b && sensorRGB.red() > 1000){
-            beaconleft.setPosition(0.5);
-            beaconright.setPosition(1);
-        }
-        else{
-            beaconleft.setPosition(0.5);
-            beaconright.setPosition(0.5);
-        }
-        //Debug
+        // /Debug
         /*
         telemetry.addData("LeftY",  " at %7d",
                 leftY);
