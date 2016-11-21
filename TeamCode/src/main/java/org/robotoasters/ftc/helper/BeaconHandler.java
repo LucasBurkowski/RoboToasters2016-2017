@@ -14,11 +14,8 @@ public class BeaconHandler {
     private ColorSensor sensorRGB;
     private Servo beaconright;
     private Servo beaconleft;
-    private DcMotor motorLeft1;
-    private DcMotor motorLeft2;
-    private DcMotor motorRight1;
-    private DcMotor motorRight2;
     private HardwareMap Map;
+    private int LED_CHANNEL = 5;
     public static int RED = 0;
     public static int BLUE = 1;
 
@@ -27,27 +24,17 @@ public class BeaconHandler {
         initHandler();
     }
 
-    public void initHandler(){
+    private void initHandler(){
         cdim = Map.deviceInterfaceModule.get("dim");
         beaconleft = Map.servo.get("Srv1");
         beaconright = Map.servo.get("Srv2");
         sensorRGB = Map.colorSensor.get("color");
-        motorLeft1 = Map.dcMotor.get("motorLeft1");
-        motorLeft2 = Map.dcMotor.get("motorLeft2");
-        motorRight1 = Map.dcMotor.get("motorRight1");
-        motorRight2 = Map.dcMotor.get("motorRight2");
-        motorLeft1.setDirection(DcMotor.Direction.REVERSE);
-        motorLeft2.setDirection(DcMotor.Direction.REVERSE);
-        motorRight1.setDirection(DcMotor.Direction.FORWARD);
-        motorRight2.setDirection(DcMotor.Direction.FORWARD);
         DcMotor.RunMode current = DcMotor.RunMode.RUN_TO_POSITION;
-        motorLeft1.setMode(current);
-        motorLeft2.setMode(current);
-        motorRight1.setMode(current);
-        motorRight2.setMode(current);
+        cdim.setDigitalChannelMode(LED_CHANNEL, DigitalChannelController.Mode.OUTPUT);
+        cdim.setDigitalChannelState(LED_CHANNEL, false);
     }
 
-    public int getColor(){
+    private int getColor(){
         if (sensorRGB.red() > sensorRGB.blue()){
             return RED;
         }
@@ -63,11 +50,9 @@ public class BeaconHandler {
         switch(color){
             case 0: if (getColor() == BLUE){
                 beaconleft.setPosition(1);
-                pressBeacon();
             }
                 else if (getColor() == RED){
                 beaconright.setPosition(0);
-                pressBeacon();
             }
                 else{
                 beaconleft.setPosition(.5);
@@ -75,21 +60,17 @@ public class BeaconHandler {
             }
                 break;
 
-
             case 1: if (getColor() == RED){
                 beaconleft.setPosition(1);
-                pressBeacon();
             }
             else if (getColor() == BLUE){
                 beaconright.setPosition(0);
-                pressBeacon();
             }
             else{
                 beaconleft.setPosition(.5);
                 beaconright.setPosition(.5);
             }
                 break;
-
 
             default:
                 beaconright.setPosition(.5);
@@ -99,29 +80,13 @@ public class BeaconHandler {
 
     }
 
-    private void pressBeacon(){
-        boolean atPosition = false;
-        int pushDist = inchesToTicks(5);
-        motorLeft1.setTargetPosition(pushDist);
-        motorLeft2.setTargetPosition(pushDist);
-        motorRight1.setTargetPosition(pushDist);
-        motorRight2.setTargetPosition(pushDist);
-        while (atPosition == false){
-            if (motorRight2.getCurrentPosition() >= pushDist){
-                atPosition = true;
-            }
-            else{
-                motorRight2.setPower(-0.5);
-                motorRight1.setPower(-0.5);
-                motorLeft1.setPower(-0.5);
-                motorLeft2.setPower(-0.5);
-            }
-        }
-    }
-
     private int inchesToTicks(double distance){
         return((int) Math.ceil(
                 distance*2880/32
         ));
+    }
+
+    public int printColor() {
+        return getColor();
     }
 }

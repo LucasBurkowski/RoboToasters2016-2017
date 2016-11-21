@@ -178,6 +178,9 @@ public class TeleOp extends OpMode{
         else if (gamepad2.x){
             beaconPush.pressBeacon(beaconPush.BLUE);
         }
+        else if (gamepad2.y){
+            beaconPush.pressBeacon(3);
+        }
 
         // /Debug
         /*
@@ -187,13 +190,9 @@ public class TeleOp extends OpMode{
                 rightY);
         telemetry.update();
         */
-        telemetry.addData("leftM0tor",  " at %7d :%7d",
-                motorLeft1.getCurrentPosition(),
-                motorLeft2.getCurrentPosition());
-        telemetry.addData("rightMotor",  " at %7d :%7d",
-                motorRight1.getCurrentPosition(),
-                motorRight2.getCurrentPosition());
-        telemetry.update();
+        telemetry.addData("motorRight",  " at %7d",
+                motorRight1.getCurrentPosition());
+
 /*
         telemetry.addData("Lift1",  " at %7d",
                 Lift1.getCurrentPosition());
