@@ -32,13 +32,17 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.adafruit.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.robotoasters.ftc.helper.BeaconHandler;
-import org.robotoasters.ftc.helper.NavigationHandler;
 
 /**
  * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
@@ -56,16 +60,26 @@ import org.robotoasters.ftc.helper.NavigationHandler;
 @Autonomous(name="Autonomous_Red", group="Linear Opmode")  // @Autonomous(...) is the other common choice
 public class AutoRed extends LinearOpMode {
     private ElapsedTime runtime = new ElapsedTime();
-    NavigationHandler nav;
+    DeviceInterfaceModule cdim;
     DcMotor motorLeft1;
     DcMotor motorLeft2;
     DcMotor motorRight1;
     DcMotor motorRight2;
     BeaconHandler beaconPush;
+    Orientation angles;
+    BNO055IMU imu;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        nav = new NavigationHandler(hardwareMap);
+        cdim = hardwareMap.deviceInterfaceModule.get("dim");
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
+        parameters.calibrationDataFile = "AdafruitIMUCalibration.json"; // see the calibration sample opmode
+        parameters.loggingEnabled      = true;
+        parameters.loggingTag          = "IMU";
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
+        imu.getAngularOrientation().toAxesReference(AxesReference.INTRINSIC).toAxesOrder(AxesOrder.ZYX);
         motorLeft1 = hardwareMap.dcMotor.get("motorLeft1");
         motorLeft2 = hardwareMap.dcMotor.get("motorLeft2");
         motorRight1 = hardwareMap.dcMotor.get("motorRight1");
@@ -81,30 +95,18 @@ public class AutoRed extends LinearOpMode {
         beaconPush = new BeaconHandler(hardwareMap);
         waitForStart();
         driveStraightAmount(24, 0.5);
-        turnLeftAmount(45);
-        driveStraightAmount(20, 0.5);
-        turnLeftAmount(60);
-        driveStraightAmount(15, 0.4);
-        beaconPush.pressBeacon(beaconPush.BLUE);
-        driveStraightAmount(4, 0.5);
-
+        turnRightAmount(45);
         while (opModeIsActive()){
-
         }
     }
 
-    public void turnRightAmount(int degrees){
-        int turnDist = degreesToTicks(degrees);
+    public void turnRightAmount(float degrees){
         resetEncoders();
-        runToPos();
-        setLeftTarget(-turnDist);
-        setRightTarget(turnDist);
-        turnRight(1);
-        while(motorLeft1.isBusy() && motorRight1.isBusy()){
-            telemetry.addData("motorRight",  " at %7d",
-                    motorLeft1.getCurrentPosition());
-            telemetry.addData("target", " %7d", motorRight2.getTargetPosition());
-            telemetry.update();
+        runWithoutEncoders();
+        turnLeft(1);
+        while(getAngle() < degrees){
+            telemetry.addData("gyro",  " at %7d",
+                    getAngle());
         }
         turnRight(0);
         runWithEncoders();
@@ -192,6 +194,13 @@ public class AutoRed extends LinearOpMode {
         motorRight2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
+    private void runWithoutEncoders(){
+        motorLeft1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorLeft2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorRight1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorRight2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
+
     private int inchesToTicks(double distance){
         return((int) Math.ceil(
                 distance*2880/32
@@ -200,6 +209,13 @@ public class AutoRed extends LinearOpMode {
 
     private int degreesToTicks(double degrees){
         return((int) Math.ceil(inchesToTicks(Math.toRadians(degrees) * (16/2) //arc length = angle * radius
-        ));
+        )));
     }
+
+    private float getAngle(){
+        return imu.getAngularOrientation().firstAngle;
+    }
+
+
+
 }
