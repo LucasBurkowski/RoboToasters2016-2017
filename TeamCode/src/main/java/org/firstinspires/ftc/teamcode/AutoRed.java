@@ -94,32 +94,32 @@ public class AutoRed extends LinearOpMode {
         motorRight2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         beaconPush = new BeaconHandler(hardwareMap);
         waitForStart();
-        driveStraightAmount(24, 0.5);
-        turnRightAmount(45);
+        turnRightAmount(90);
         while (opModeIsActive()){
+            telemetry.addData("gyro",  " at %.3f",
+                    getAngle());
+            telemetry.update();
         }
     }
 
     public void turnRightAmount(float degrees){
         resetEncoders();
-        runWithoutEncoders();
-        turnLeft(1);
+        //runWithoutEncoders();
+        turnRight(1);
+        telemetry.addData("gyro",  " at %.3f",
+                getAngle());
         while(getAngle() < degrees){
-            telemetry.addData("gyro",  " at %7d",
-                    getAngle());
+            telemetry.addData("gyro",  " at %.3f", getAngle());
         }
         turnRight(0);
         runWithEncoders();
     }
 
-    public void turnLeftAmount(int degrees){
-        int turnDist = degreesToTicks(degrees);
+    public void turnLeftAmount(float degrees){
         resetEncoders();
-        runToPos();
-        setLeftTarget(turnDist);
-        setRightTarget(-turnDist);
+        runWithoutEncoders();
         turnLeft(1);
-        while(motorLeft1.isBusy()&& motorRight1.isBusy()){
+        while(getAngle() > degrees){
         }
         turnLeft(0);
         runWithEncoders();
@@ -136,6 +136,8 @@ public class AutoRed extends LinearOpMode {
             telemetry.addData("motorRight",  " at %7d",
                     motorLeft1.getCurrentPosition());
             telemetry.addData("target", " %7d", motorRight2.getTargetPosition());
+            telemetry.addData("gyro",  " at %.3f",
+                    getAngle());
             telemetry.update();
         }
         driveStraight(0);
@@ -213,7 +215,12 @@ public class AutoRed extends LinearOpMode {
     }
 
     private float getAngle(){
-        return imu.getAngularOrientation().firstAngle;
+        float currentHeading = Math.abs(imu.getAngularOrientation().firstAngle);
+        if (currentHeading > 180)
+            currentHeading = currentHeading - 360;
+        if (currentHeading < 180)
+            currentHeading = currentHeading + 360;
+        return currentHeading;
     }
 
 
