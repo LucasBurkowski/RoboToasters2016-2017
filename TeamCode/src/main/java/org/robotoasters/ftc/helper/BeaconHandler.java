@@ -29,7 +29,6 @@ public class BeaconHandler {
         beaconleft = Map.servo.get("Srv1");
         beaconright = Map.servo.get("Srv2");
         sensorRGB = Map.colorSensor.get("color");
-        DcMotor.RunMode current = DcMotor.RunMode.RUN_TO_POSITION;
         cdim.setDigitalChannelMode(LED_CHANNEL, DigitalChannelController.Mode.OUTPUT);
         cdim.setDigitalChannelState(LED_CHANNEL, false);
     }
@@ -78,12 +77,6 @@ public class BeaconHandler {
                 break;
         }
 
-    }
-
-    private int inchesToTicks(double distance){
-        return((int) Math.ceil(
-                distance*2880/32
-        ));
     }
 
     public int printColor() {

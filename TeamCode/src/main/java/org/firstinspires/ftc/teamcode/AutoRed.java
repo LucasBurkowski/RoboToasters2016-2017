@@ -37,7 +37,6 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -59,7 +58,6 @@ import org.robotoasters.ftc.helper.BeaconHandler;
 
 @Autonomous(name="Autonomous_Red", group="Linear Opmode")  // @Autonomous(...) is the other common choice
 public class AutoRed extends LinearOpMode {
-    private ElapsedTime runtime = new ElapsedTime();
     DeviceInterfaceModule cdim;
     DcMotor motorLeft1;
     DcMotor motorLeft2;
@@ -67,6 +65,7 @@ public class AutoRed extends LinearOpMode {
     DcMotor motorRight2;
     BeaconHandler beaconPush;
     BNO055IMU imu;
+    double Kp = 0.04;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -94,13 +93,14 @@ public class AutoRed extends LinearOpMode {
         beaconPush = new BeaconHandler(hardwareMap);
         waitForStart();
         //driveStraightAmount(12, 0.5);
-        driveStraightAmount(30, 0.5);
+        driveStraightAmount(30);
+        turnRightAmount(50);
+        driveStraightAmount(40);
         turnRightAmount(90);
-        driveStraightAmount(30, 0.5);
-        turnLeftAmount(0);
-        driveStraightAmount(36, 0.5);
-        turnRightAmount(90);
-
+        driveStraightAmount(10);
+        beaconPush.pressBeacon(beaconPush.RED);
+        driveStraightAmount(2);
+        driveBackwardAmount(5);
         while (opModeIsActive()){
             telemetry.addData("gyro",  " at %.3f",
                     getAngle());
@@ -111,15 +111,10 @@ public class AutoRed extends LinearOpMode {
     public void turnLeftAmount(float degrees){
         resetEncoders();
         runWithoutEncoders();
-        telemetry.addData("gyro",  " at %.3f",
-                getAngle());
-        telemetry.update();
         while(getAngle() > degrees && opModeIsActive()){
-            float error = getAngle() - degrees;
-            double Kp = 0.025;
-            turnLeft(Math.abs(error * Kp));
-            telemetry.addData("In while Loop",  " at %.3f", getAngle());
-            telemetry.addData("degrees: ", "at %.3f", degrees);
+            turnLeft(Ploop(degrees, getAngle()));
+            telemetry.addData("gyro",  " at %.3f",
+                    getAngle());
             telemetry.update();
         }
         turnLeft(0);
@@ -130,29 +125,35 @@ public class AutoRed extends LinearOpMode {
         resetEncoders();
         runWithoutEncoders();
         while(getAngle() < degrees && opModeIsActive()){
-            float error = getAngle() - degrees;
-            double Kp = 0.025;
-            turnRight(Math.abs(error * Kp));
-            telemetry.addData("In while Loop",  " at %.3f", getAngle());
-            telemetry.addData("degrees: ", "at %.3f", degrees);
+            turnRight(Ploop(degrees, getAngle()));
+            telemetry.addData("gyro",  " at %.3f",
+                    getAngle());
             telemetry.update();
         }
         turnRight(0);
         runWithEncoders();
     }
 
-    public void driveStraightAmount(int distance, double power){
+    public void driveStraightAmount(int distance){
+        int dist = inchesToTicks(-distance);
+        resetEncoders();
+        runWithoutEncoders();
+        while(motorRight2.getCurrentPosition() > dist && opModeIsActive()){
+            driveStraight(Ploop(dist, motorRight2.getCurrentPosition()));
+            telemetry.addData("motorRight2",  " at %7d",motorRight2.getCurrentPosition());
+            telemetry.update();
+        }
+        driveStraight(0);
+        runWithEncoders();
+    }
+
+    public void driveBackwardAmount(int distance){
         int dist = inchesToTicks(distance);
         resetEncoders();
-        setRightTarget(dist);
-        setLeftTarget(dist);
-        runToPos();
-        driveStraight(power);
-        while(motorLeft1.isBusy()&& opModeIsActive()){
-            telemetry.addData("motorRight1",  " at %7d",motorLeft1.getCurrentPosition());
+        runWithoutEncoders();
+        while(motorRight2.getCurrentPosition() < dist && opModeIsActive()){
+            driveStraight(-(Ploop(dist, motorRight2.getCurrentPosition())));
             telemetry.addData("motorRight2",  " at %7d",motorRight2.getCurrentPosition());
-            telemetry.addData("motorLeft1",  " at %7d",motorLeft1.getCurrentPosition());
-            telemetry.addData("motorLeft2",  " at %7d",motorLeft2.getCurrentPosition());
             telemetry.update();
         }
         driveStraight(0);
@@ -224,20 +225,15 @@ public class AutoRed extends LinearOpMode {
         ));
     }
 
-    private int degreesToTicks(double degrees){
-        return((int) Math.ceil(inchesToTicks(Math.toRadians(degrees) * (16/2) //arc length = angle * radius
-        )));
+    private double Ploop(double target, double current) {
+        double error;
+        error = current - target;
+        return Math.abs(error * Kp);
     }
 
     private float getAngle(){
 
         float currentHeading = AngleUnit.DEGREES.normalize(imu.getAngularOrientation().firstAngle);
-        /*
-        if (currentHeading > 180)
-            currentHeading = currentHeading - 360;
-        if (currentHeading < 180)
-            currentHeading = currentHeading + 360;
-        */
         return currentHeading;
     }
 
