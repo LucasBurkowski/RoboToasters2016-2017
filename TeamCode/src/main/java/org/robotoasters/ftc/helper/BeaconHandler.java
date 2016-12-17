@@ -34,10 +34,10 @@ public class BeaconHandler {
     }
 
     private int getColor(){
-        if (sensorRGB.red() > sensorRGB.blue()){
+        if (sensorRGB.red() > sensorRGB.blue() && sensorRGB.red() > 700){
             return RED;
         }
-        else if (sensorRGB.blue() > sensorRGB.red()){
+        else if (sensorRGB.blue() > sensorRGB.red() && sensorRGB.blue() > 700){
             return BLUE;
         }
         else{
@@ -77,6 +77,19 @@ public class BeaconHandler {
                 break;
         }
 
+    }
+
+    public void resetPaddles(){
+        beaconright.setPosition(0.5);
+        beaconleft.setPosition(0.5);
+    }
+
+    public boolean isVisible(){
+        if (sensorRGB.blue() > 700 || sensorRGB.red() > 700)
+            return true;
+        else{
+            return false;
+        }
     }
 
     public int printColor() {

@@ -32,14 +32,16 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.adafruit.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.robotoasters.ftc.helper.BeaconHandler;
-import org.robotoasters.ftc.helper.NavigationHandler;
 
 /**
  * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
@@ -54,20 +56,29 @@ import org.robotoasters.ftc.helper.NavigationHandler;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Autonomous", group="Linear Opmode")  // @Autonomous(...) is the other common choice
-@Disabled
-public class AutoBlue extends LinearOpMode {
-    private ElapsedTime runtime = new ElapsedTime();
-    NavigationHandler nav;
+@Autonomous(name="Autonomous_Blue", group="Linear Opmode")  // @Autonomous(...) is the other common choice
+public class AutoB extends LinearOpMode {
+    DeviceInterfaceModule cdim;
     DcMotor motorLeft1;
     DcMotor motorLeft2;
     DcMotor motorRight1;
     DcMotor motorRight2;
     BeaconHandler beaconPush;
+    BNO055IMU imu;
+    double turnKp = 0.026;//0.04 //0.025
+    double driveKp = 0.025;//0.015 //0.025
 
     @Override
     public void runOpMode() throws InterruptedException {
-        nav = new NavigationHandler(hardwareMap);
+        cdim = hardwareMap.deviceInterfaceModule.get("dim");
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.calibrationDataFile = "AdafruitIMUCalibration.json"; // see the calibration sample opmode
+        parameters.loggingEnabled = true;
+        parameters.loggingTag = "IMU";
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
+        imu.getAngularOrientation().toAxesReference(AxesReference.INTRINSIC).toAxesOrder(AxesOrder.ZYX);
         motorLeft1 = hardwareMap.dcMotor.get("motorLeft1");
         motorLeft2 = hardwareMap.dcMotor.get("motorLeft2");
         motorRight1 = hardwareMap.dcMotor.get("motorRight1");
@@ -81,61 +92,90 @@ public class AutoBlue extends LinearOpMode {
         motorRight1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorRight2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         beaconPush = new BeaconHandler(hardwareMap);
+
         waitForStart();
-        driveStraightAmount(24, 0.5);
-        turnRightAmount(45);
-        driveStraightAmount(20, 0.5);
-        turnRightAmount(35);
-        driveStraightAmount(25, 0.4);
-        beaconPush.pressBeacon(beaconPush.BLUE);
-        driveStraightAmount(4, 0.5);
-
+        driveStraightAmount(5);
+        turnLeftAmount(-30);
+        driveStraightAmount(50);
+        turnLeftAmount(-90);
+        driveStraightAmount(13);//13  orange //8 blue
+        if (beaconPush.isVisible()){
+            beaconPush.pressBeacon(beaconPush.RED);
+            Thread.sleep(2000);
+            driveStraightAmount(3);
+            driveBackwardAmount(5);
+        }
+        else {
+            driveBackwardAmount(2);
+        }
+        beaconPush.resetPaddles();
+        turnRightAmount(0);
+        driveStraightAmount(45);//45 orange //40 blue
+        turnLeftAmount(-90);
+        driveStraightAmount(5);
+        if (beaconPush.isVisible()){
+            beaconPush.pressBeacon(beaconPush.RED);
+            Thread.sleep(2000);
+            driveStraightAmount(3);
+            driveBackwardAmount(5);
+        }
+        else {
+            driveBackwardAmount(2);
+        }
+        beaconPush.resetPaddles();
         while (opModeIsActive()){
-
+            telemetry.addData("gyro",  " at %.3f",
+                    getAngle());
+            telemetry.update();
         }
     }
 
-    public void turnRightAmount(int degrees){
-        int turnDist = degreesToTicks(degrees);
+    public void turnLeftAmount(float degrees){
         resetEncoders();
-        runToPos();
-        setLeftTarget(-turnDist);
-        setRightTarget(turnDist);
-        turnRight(1);
-        while(motorLeft1.isBusy() && motorRight1.isBusy()){
-            telemetry.addData("motorRight",  " at %7d",
-                    motorLeft1.getCurrentPosition());
-            telemetry.addData("target", " %7d", motorRight2.getTargetPosition());
+        runWithoutEncoders();
+        while(getAngle() > degrees && opModeIsActive()){
+            turnLeft(Ploop(degrees, getAngle(), turnKp));
+            telemetry.addData("gyro",  " at %.3f",
+                    getAngle());
+            telemetry.update();
+        }
+        turnLeft(0);
+        runWithEncoders();
+    }
+
+    public void turnRightAmount(float degrees){
+        resetEncoders();
+        runWithoutEncoders();
+        while(getAngle() < degrees && opModeIsActive()){
+            turnRight(Ploop(degrees, getAngle(), turnKp));
+            telemetry.addData("gyro",  " at %.3f",
+                    getAngle());
             telemetry.update();
         }
         turnRight(0);
         runWithEncoders();
     }
 
-    public void turnLeftAmount(int degrees){
-        int turnDist = degreesToTicks(degrees);
+    public void driveStraightAmount(int distance){
+        int dist = inchesToTicks(distance);
         resetEncoders();
-        runToPos();
-        setLeftTarget(turnDist);
-        setRightTarget(-turnDist);
-        turnLeft(1);
-        while(motorLeft1.isBusy()&& motorRight1.isBusy()){
+        runWithoutEncoders();
+        while(motorRight2.getCurrentPosition() < dist && opModeIsActive()){
+            driveStraight(Ploop(dist, motorRight2.getCurrentPosition(), driveKp));
+            telemetry.addData("motorRight2",  " at %7d",motorRight2.getCurrentPosition());
+            telemetry.update();
         }
-        turnLeft(0);
+        driveStraight(0);
         runWithEncoders();
     }
 
-    public void driveStraightAmount(int distance, double power){
-        int dist = inchesToTicks(distance);
+    public void driveBackwardAmount(int distance){
+        int dist = inchesToTicks(-distance);
         resetEncoders();
-        setRightTarget(dist);
-        setLeftTarget(dist);
-        runToPos();
-        driveStraight(power);
-        while(motorLeft1.isBusy()&& opModeIsActive()){
-            telemetry.addData("motorRight",  " at %7d",
-                    motorLeft1.getCurrentPosition());
-            telemetry.addData("target", " %7d", motorRight2.getTargetPosition());
+        runWithoutEncoders();
+        while(motorRight2.getCurrentPosition() > dist && opModeIsActive()){
+            driveStraight(-(Ploop(dist, motorRight2.getCurrentPosition(), driveKp)));
+            telemetry.addData("motorRight2",  " at %7d",motorRight2.getCurrentPosition());
             telemetry.update();
         }
         driveStraight(0);
@@ -194,14 +234,28 @@ public class AutoBlue extends LinearOpMode {
         motorRight2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
+    private void runWithoutEncoders(){
+        motorLeft1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorLeft2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorRight1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorRight2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
+
     private int inchesToTicks(double distance){
         return((int) Math.ceil(
                 distance*2880/32
         ));
     }
 
-    private int degreesToTicks(double degrees){
-        return((int) Math.ceil(inchesToTicks(Math.toRadians(degrees) * 16) //arc length = angle * radius
-        ));
+    private double Ploop(double target, double current, double Kp) {
+        double error;
+        error = current - target;
+        return Math.abs(error * Kp);
     }
+
+    private float getAngle(){
+        float currentHeading = AngleUnit.DEGREES.normalize(imu.getAngularOrientation().firstAngle);
+        return currentHeading;
+    }
+
 }

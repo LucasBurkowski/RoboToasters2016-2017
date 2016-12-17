@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.vuforia.HINT;
@@ -18,6 +19,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
  * Created by team 8487/11735 on 9/28/2016.
  */
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="AutonomousBlue", group="Opmode")
+@Disabled
 public class AutonomousBlue extends OpMode {
 
     DcMotor motorLeft1;

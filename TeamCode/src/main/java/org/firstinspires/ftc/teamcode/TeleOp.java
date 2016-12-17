@@ -179,7 +179,7 @@ public class TeleOp extends OpMode{
             beaconPush.pressBeacon(beaconPush.BLUE);
         }
         else if (gamepad2.y){
-            beaconPush.pressBeacon(3);
+            beaconPush.resetPaddles();
         }
 
         // /Debug

@@ -30,7 +30,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.firstinspires.ftc.teamcode;
+package org.robotoasters.ftc.testing;
 
 import com.qualcomm.hardware.adafruit.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -56,8 +56,8 @@ import org.robotoasters.ftc.helper.BeaconHandler;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Autonomous_Red", group="Linear Opmode")  // @Autonomous(...) is the other common choice
-public class AutoRed extends LinearOpMode {
+@Autonomous(name="Autonomous_TEST!", group="Linear Opmode")  // @Autonomous(...) is the other common choice
+public class AutoDriveTest extends LinearOpMode {
     DeviceInterfaceModule cdim;
     DcMotor motorLeft1;
     DcMotor motorLeft2;
@@ -65,8 +65,9 @@ public class AutoRed extends LinearOpMode {
     DcMotor motorRight2;
     BeaconHandler beaconPush;
     BNO055IMU imu;
-    double turnKp = 0.025; //0.04 blue //0.025 orange
-    double driveKp = 0.025; //0.015 blue //0.025 orange
+    double turnKp = 0.026;//0.04 //0.025
+    double driveKp = 0.025;//0.015 //0.025
+    double currentTrnTgt = 0;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -87,41 +88,35 @@ public class AutoRed extends LinearOpMode {
         motorLeft2.setDirection(DcMotor.Direction.REVERSE);
         motorRight1.setDirection(DcMotor.Direction.FORWARD);
         motorRight2.setDirection(DcMotor.Direction.FORWARD);
-        motorLeft1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorLeft2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorRight1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorRight2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorLeft1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorLeft2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorRight1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorRight2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         beaconPush = new BeaconHandler(hardwareMap);
+        /*
         waitForStart();
-        driveStraightAmount(5);
-        turnRightAmount(30);
-        driveStraightAmount(50);//50 blue //54 orange
-        turnRightAmount(90);
-        driveStraightAmount(13);//13 orange //8 blue
-        if (beaconPush.isVisible()){
-            beaconPush.pressBeacon(beaconPush.RED);
-            Thread.sleep(2000);
-            driveStraightAmount(3);
-            driveBackwardAmount(5);
-        }
-        else {
-            driveBackwardAmount(2);
-        }
+        driveAmount(5);
+        turnAmount(-30);
+        driveAmount(50);
+        turnAmount(-90);
+        */
+        driveWhileTurning(78, -90);
+        driveAmount(8);//11  orange //8 blue
+        beaconPush.pressBeacon(beaconPush.RED);
+        Thread.sleep(2000);
+        driveAmount(3);
+        driveAmount(-5);
         beaconPush.resetPaddles();
-        turnLeftAmount(0);
-        driveStraightAmount(45);//45 orange //43 blue
-        turnRightAmount(90);
-        driveStraightAmount(5);
-        if (beaconPush.isVisible()){
-            beaconPush.pressBeacon(beaconPush.RED);
-            Thread.sleep(2000);
-            driveStraightAmount(3);
-            driveBackwardAmount(5);
-        }
-        else {
-            driveBackwardAmount(2);
-        }
+        turnAmount(0);
+        driveAmount(45);//45 orange //40 blue
+        turnAmount(-90);
+        driveAmount(5);
+        beaconPush.pressBeacon(beaconPush.RED);
+        Thread.sleep(2000);
+        driveAmount(3);
+        driveAmount(-5);
         beaconPush.resetPaddles();
+
         while (opModeIsActive()){
             telemetry.addData("gyro",  " at %.3f",
                     getAngle());
@@ -129,87 +124,34 @@ public class AutoRed extends LinearOpMode {
         }
     }
 
-    public void turnLeftAmount(float degrees){
+    public void turnAmount(float degrees){
         resetEncoders();
-        runWithoutEncoders();
-        while(getAngle() > degrees && opModeIsActive()){
-            turnLeft(Ploop(degrees, getAngle(), turnKp));
+        while((getAngle() < degrees - 1 || getAngle() > degrees + 1) && opModeIsActive()){
+            arcadeDrive(0, Ploop(degrees, getAngle(), turnKp));
             telemetry.addData("gyro",  " at %.3f",
                     getAngle());
             telemetry.update();
         }
-        turnLeft(0);
-        runWithEncoders();
+        arcadeDrive(0, 0);
+        currentTrnTgt = getAngle();
     }
 
-    public void turnRightAmount(float degrees){
-        resetEncoders();
-        runWithoutEncoders();
-        while(getAngle() < degrees && opModeIsActive()){
-            turnRight(Ploop(degrees, getAngle(), turnKp));
-            telemetry.addData("gyro",  " at %.3f",
-                    getAngle());
-            telemetry.update();
+    public void driveWhileTurning(int distance, int degrees){
+        int dist = inchesToTicks(distance);
+        while(motorRight2.getCurrentPosition() < dist && (getAngle() < degrees - 1 || getAngle() > degrees + 1) && opModeIsActive()){
+            arcadeDrive(Ploop(dist, motorRight2.getCurrentPosition(), driveKp), Ploop(degrees, getAngle(), turnKp));
         }
-        turnRight(0);
-        runWithEncoders();
     }
 
-    public void driveStraightAmount(int distance){
+    public void driveAmount(int distance){
         int dist = inchesToTicks(distance);
         resetEncoders();
-        runWithoutEncoders();
-        while(motorRight2.getCurrentPosition() < dist && opModeIsActive()){
-            driveStraight(Ploop(dist, motorRight2.getCurrentPosition(), driveKp));
+        while((motorRight2.getCurrentPosition() > dist + 0.5 || motorRight2.getCurrentPosition() < dist - 0.5) && opModeIsActive()){
+            arcadeDrive(Ploop(dist, motorRight2.getCurrentPosition(), driveKp), Ploop(currentTrnTgt, getAngle(), turnKp));
             telemetry.addData("motorRight2",  " at %7d",motorRight2.getCurrentPosition());
             telemetry.update();
         }
-        driveStraight(0);
-        runWithEncoders();
-    }
-
-    public void driveBackwardAmount(int distance){
-        int dist = inchesToTicks(-distance);
-        resetEncoders();
-        runWithoutEncoders();
-        while(motorRight2.getCurrentPosition() > dist && opModeIsActive()){
-            driveStraight(-(Ploop(dist, motorRight2.getCurrentPosition(), driveKp)));
-            telemetry.addData("motorRight2",  " at %7d",motorRight2.getCurrentPosition());
-            telemetry.update();
-        }
-        driveStraight(0);
-        runWithEncoders();
-    }
-
-    private void driveStraight(double power){
-        motorLeft1.setPower(power);
-        motorLeft2.setPower(power);
-        motorRight1.setPower(power);
-        motorRight2.setPower(power);
-    }
-
-    private void turnRight(double power){
-        motorLeft1.setPower(power);
-        motorLeft2.setPower(power);
-        motorRight1.setPower(-power);
-        motorRight2.setPower(-power);
-    }
-
-    private void turnLeft(double power){
-        motorLeft1.setPower(-power);
-        motorLeft2.setPower(-power);
-        motorRight1.setPower(power);
-        motorRight2.setPower(power);
-    }
-
-    private void setLeftTarget(int distance){
-        motorLeft1.setTargetPosition(distance);
-        motorLeft2.setTargetPosition(distance);
-    }
-
-    private void setRightTarget(int distance){
-        motorRight1.setTargetPosition(distance);
-        motorRight2.setTargetPosition(distance);
+        arcadeDrive(0, 0);
     }
 
     private void resetEncoders(){
@@ -217,27 +159,6 @@ public class AutoRed extends LinearOpMode {
         motorRight2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motorLeft1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motorLeft2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-    }
-
-    private void runWithEncoders(){
-        motorRight1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorRight2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorLeft1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorLeft2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-    }
-
-    private void runToPos(){
-        motorLeft1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorLeft2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorRight1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorRight2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-    }
-
-    private void runWithoutEncoders(){
-        motorLeft1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        motorLeft2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        motorRight1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        motorRight2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     private int inchesToTicks(double distance){
@@ -253,11 +174,17 @@ public class AutoRed extends LinearOpMode {
     }
 
     private float getAngle(){
-
         float currentHeading = AngleUnit.DEGREES.normalize(imu.getAngularOrientation().firstAngle);
         return currentHeading;
     }
 
-
+    private void arcadeDrive(double frwdBck, double lftRgt){
+        double leftMotors = frwdBck - lftRgt;
+        double rightMotors = lftRgt + frwdBck;
+        motorLeft1.setPower(leftMotors);
+        motorLeft2.setPower(leftMotors);
+        motorRight1.setPower(rightMotors);
+        motorRight2.setPower(rightMotors);
+    }
 
 }
